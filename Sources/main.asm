@@ -60,11 +60,7 @@ BASE_MID      FCB   $8A
 BASE_PORT     FCB   $62
 BASE_STBD     FCB   $9C
 
-LINE_VARIANCE           FCB   $10           ; Adding variance based on testing to 
-;BOW_VARIANCE            FCB   $30           ; Establish baseline for sensors
-;PORT_VARIANCE           FCB   $20                     
-;MID_VARIANCE            FCB   $20
-;STARBOARD_VARIANCE      FCB   $15
+LINE_VARIANCE           FCB   $10           ; Adding variance based on testing to
 
 TOP_LINE      RMB   20                      ; Top line of display
               FCB   NULL                    ; terminated by null
@@ -219,36 +215,36 @@ NO_FWD_BUMP       BRSET   PORTAD0, $04, NO_FWD_REAR_BUMP      ; Checks if the st
                   LBRA    EXIT 
                   
 NO_FWD_REAR_BUMP  LDAA    SENSOR_BOW                                                               
-                  CMPA    BASE_BOW                                                                
-                  BPL     NOT_ALIGNED                                                                
-                  LDAA    SENSOR_MID                                                                
-                  CMPA    BASE_MID                                                                
-                  BPL     NOT_ALIGNED                                                               
+                  CMPA    BASE_BOW                ; Sensor - base: >0 = black                                                
+                  BPL     NOT_ALIGNED             ; If BOW black, go straight                                                    
+                  ;LDAA    SENSOR_MID                                                                
+                  ;CMPA    BASE_MID                                                                
+                  ;BPL     NOT_ALIGNED                                                               
                   LDAA    SENSOR_LINE                                                
                   ADDA    LINE_VARIANCE                                                                
-                  CMPA    BASE_LINE                                                               
-                  BPL     CHECK_RIGHT_ALIGN                                                          
+                  CMPA    BASE_LINE               ; Sensor + var - base > 0 -> right black                                                
+                  BPL     CHECK_RIGHT_ALIGN       ; Turn right                                                   
                   LDAA    SENSOR_LINE                                                             
-                  SUBA    LINE_VARIANCE                                                                
-                  CMPA    BASE_LINE                                                              
+                  SUBA    LINE_VARIANCE           ; Sensor - var - base > 0 -> left black                                                     
+                  CMPA    BASE_LINE               ; Turn left                                               
                   BMI     CHECK_LEFT_ALIGN
 
 ;***************************************************************************************************                                                                  
 
 NOT_ALIGNED       LDAA    SENSOR_PORT                                                               
                   CMPA    BASE_PORT                                                              
-                  BPL     PARTIAL_LEFT_TRN                                                        
-                  BMI     NO_PORT                                                             
+                  BPL     PARTIAL_LEFT_TRN     ; If Left is black, partial left                                                   
+                  BMI     NO_PORT              ; If Left white, go to NO PORT                                               
 
 NO_PORT           LDAA    SENSOR_BOW                                                                 
                   CMPA    BASE_BOW                                                                
-                  BPL     EXIT                                                                    
-                  BMI     NO_BOW                                                              
+                  BPL     EXIT                 ; If Fwd black, GO STRAIGHT                                                   
+                  BMI     NO_BOW               ; ELSE,                                                
 
 NO_BOW            LDAA    SENSOR_STBD                                                               
                   CMPA    BASE_STBD                                                               
-                  BPL     PARTIAL_RIGHT_TRN                                                         
-                  BMI     EXIT 
+                  BPL     PARTIAL_RIGHT_TRN    ; If Right black, GO RIGHT                                                     
+                  BMI     EXIT                 ; GO STRAIGHT
 
 ;***************************************************************************************************
 
