@@ -34,8 +34,8 @@ SPACE         EQU   ' '                   ; The ?space? character
 
 ;Timers
 ;---------------
-T_LEFT        EQU   8
-T_RIGHT       EQU   8
+T_LEFT        EQU   4
+T_RIGHT       EQU   4
 
 ; States for robot
 ;-----------------
@@ -56,15 +56,15 @@ RIGHT_ALIGN   EQU   7
 ; -------------------------------------------------------
 BASE_LINE     FCB   $9D
 BASE_BOW      FCB   $2A
-BASE_MID      FCB   $CA
+BASE_MID      FCB   $8A
 BASE_PORT     FCB   $CC
 BASE_STBD     FCB   $CC
 
 LINE_VARIANCE           FCB   $18           ; Adding variance based on testing to 
 ;BOW_VARIANCE            FCB   $30           ; Establish baseline for sensors
 PORT_VARIANCE           FCB   $20                     
-MID_VARIANCE            FCB   $20
-STARBOARD_VARIANCE      FCB   $15111
+;MID_VARIANCE            FCB   $20
+STARBOARD_VARIANCE      FCB   $15
 
 TOP_LINE      RMB   20                      ; Top line of display
               FCB   NULL                    ; terminated by null
@@ -202,30 +202,29 @@ RELEASE           RTS
 ;***************************************************************************************************
 
 FWD_ST            BRSET   PORTAD0, $04, NO_FWD_BUMP           ; Checks if bow bumper is hit                           
-                  MOVB    #REV_TRN, CRNT_STATE                ; if true, enter the                                 
+                  MOVB    #REV_TRN, CRNT_STATE                ; Bow bumper hit                                 
                                                               ; REV_TURN state                             
                   JSR     UPDT_DISPL                          ; Update the display                                
                   JSR     INIT_REV                                                                
-                  LDY     #6000                                                                   
+                  LDY     #2000                                                                   
                   JSR     del_50us                                                                
-                  JSR     INIT_RIGHT                                                              
-                  LDY     #6000                                                                   
+                  JSR     INIT_LEFT                                                              
+                  LDY     #2000                                                                   
                   JSR     del_50us                                                                
                   LBRA    EXIT                                                                    
 
 NO_FWD_BUMP       BRSET   PORTAD0, $04, NO_FWD_REAR_BUMP      ; Checks if the stern bumper 
-                  MOVB    #ALL_STOP, CRNT_STATE               ; if true, enter the                   
+                  MOVB    #ALL_STOP, CRNT_STATE               ; if stern hit, enter the                   
                   JSR     INIT_STOP                           ; ALL_STOP state
                   LBRA    EXIT 
                   
 NO_FWD_REAR_BUMP  LDAA    SENSOR_BOW                                                               
                   CMPA    BASE_BOW                                                                
                   BPL     NOT_ALIGNED                                                                
-                  LDAA    SENSOR_MID                                                              
-                  ADDA    MID_VARIANCE                                                                
+                  LDAA    SENSOR_MID                                                                
                   CMPA    BASE_MID                                                                
                   BPL     NOT_ALIGNED                                                               
-                  LDAA    SENSOR_LINE                                                             
+                  LDAA    SENSOR_LINE                                                
                   ADDA    LINE_VARIANCE                                                                
                   CMPA    BASE_LINE                                                               
                   BPL     CHECK_RIGHT_ALIGN                                                          
