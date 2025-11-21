@@ -57,9 +57,9 @@ T_REV_TRN     ds.b  1         ; REV_TURN time
 TEN_THOUS     ds.b  1         ; 10,000 digit
 THOUSANDS     ds.b  1         ; 1,000 digit
 HUNDREDS      ds.b  1         ; 100 digit
-TENS          ds.b  1         ; 10 digit
-UNITS         ds.b  1         ; 1 digit
-NO_BLANK      ds.b  1         ; Used in ’leading zero’ blanking by BCD2ASC
+TENS          ds.b  1          ; 10 digit
+UNITS         ds.b  1          ; 1 digit
+NO_BLANK      ds.b  1          ; Used in ’leading zero’ blanking by BCD2ASC
 BCD_SPARE     ds.b  10
 
 
