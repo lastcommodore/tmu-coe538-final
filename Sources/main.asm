@@ -54,17 +54,17 @@ RIGHT_ALIGN   EQU   7
 
 ; Initial values based on the initial readings & variance
 ; -------------------------------------------------------
-BASE_LINE     FCB   $9D
-BASE_BOW      FCB   $CA
-BASE_MID      FCB   $CA
-BASE_PORT     FCB   $CC
-BASE_STBD     FCB   $CC
+BASE_LINE     FCB   $AD
+BASE_BOW      FCB   $1D
+BASE_MID      FCB   $43
+BASE_PORT     FCB   $91
+BASE_STBD     FCB   $65
 
-LINE_VARIANCE           FCB   $18           ; Adding variance based on testing to 
-BOW_VARIANCE            FCB   $30           ; Establish baseline for sensors
+LINE_VARIANCE           FCB   $40           ; Adding variance based on testing to 
+BOW_VARIANCE            FCB   $12           ; Establish baseline for sensors
 PORT_VARIANCE           FCB   $20                     
 MID_VARIANCE            FCB   $20
-STARBOARD_VARIANCE      FCB   $15
+STARBOARD_VARIANCE      FCB   $50
 
 TOP_LINE      RMB   20                      ; Top line of display
               FCB   NULL                    ; terminated by null
