@@ -11,7 +11,7 @@
 ; equates section
 ;***************************************************************************************************
 
-;   Liquid Crystal Display Equates
+; Liquid Crystal Display Equates
 ;-------------------------------
 CLEAR_HOME    EQU   $01                   ; Clear the display and home the cursor
 INTERFACE     EQU   $38                   ; 8 bit interface, two line display
