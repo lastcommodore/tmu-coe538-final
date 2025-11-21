@@ -54,17 +54,17 @@ RIGHT_ALIGN   EQU   7
 
 ; Initial values based on the initial readings & variance
 ; -------------------------------------------------------
-BASE_LINE     FCB   $9D
+BASE_LINE     FCB   $D0
 BASE_BOW      FCB   $2A
 BASE_MID      FCB   $8A
-BASE_PORT     FCB   $CC
-BASE_STBD     FCB   $CC
+BASE_PORT     FCB   $62
+BASE_STBD     FCB   $9C
 
-LINE_VARIANCE           FCB   $18           ; Adding variance based on testing to 
+LINE_VARIANCE           FCB   $10           ; Adding variance based on testing to 
 ;BOW_VARIANCE            FCB   $30           ; Establish baseline for sensors
-PORT_VARIANCE           FCB   $20                     
+;PORT_VARIANCE           FCB   $20                     
 ;MID_VARIANCE            FCB   $20
-STARBOARD_VARIANCE      FCB   $15
+;STARBOARD_VARIANCE      FCB   $15
 
 TOP_LINE      RMB   20                      ; Top line of display
               FCB   NULL                    ; terminated by null
@@ -138,14 +138,14 @@ MAIN
 ;***************************************************************************************************
 msg1          dc.b  "Battery volt ",0
 msg2          dc.b  "State",0
-tab           dc.b  "start  ",0
-              dc.b  "fwd    ",0
-              dc.b  "all_stp",0
-              dc.b  "LeftTurn  ",0
-              dc.b  "RightTurn  ",0
-              dc.b  "RevTrn ",0
-              dc.b  "LeftTimed ",0     
-              dc.b  "RTimed ",0  
+tab           dc.b  "START",0
+              dc.b  "FWD",0
+              dc.b  "stop!",0
+              dc.b  "TURNLEFT  ",0
+              dc.b  "TURNRITE  ",0
+              dc.b  "TURNREV ",0
+              dc.b  "LEFTALGN ",0     
+              dc.b  "RTIME",0  
 
 ; subroutine section
 ;***************************************************************************************************
@@ -206,10 +206,10 @@ FWD_ST            BRSET   PORTAD0, $04, NO_FWD_BUMP           ; Checks if bow bu
                                                               ; REV_TURN state                             
                   JSR     UPDT_DISPL                          ; Update the display                                
                   JSR     INIT_REV                                                                
-                  LDY     #2000                                                                   
+                  LDY     #6000                                                                   
                   JSR     del_50us                                                                
                   JSR     INIT_LEFT                                                              
-                  LDY     #2000                                                                   
+                  LDY     #4000                                                                   
                   JSR     del_50us                                                                
                   LBRA    EXIT                                                                    
 
@@ -235,8 +235,7 @@ NO_FWD_REAR_BUMP  LDAA    SENSOR_BOW
 
 ;***************************************************************************************************                                                                  
 
-NOT_ALIGNED       LDAA    SENSOR_PORT                                                            
-                  ADDA    PORT_VARIANCE                                                               
+NOT_ALIGNED       LDAA    SENSOR_PORT                                                               
                   CMPA    BASE_PORT                                                              
                   BPL     PARTIAL_LEFT_TRN                                                        
                   BMI     NO_PORT                                                             
@@ -246,8 +245,7 @@ NO_PORT           LDAA    SENSOR_BOW
                   BPL     EXIT                                                                    
                   BMI     NO_BOW                                                              
 
-NO_BOW            LDAA    SENSOR_STBD                                                             
-                  ADDA    STARBOARD_VARIANCE                                                               
+NO_BOW            LDAA    SENSOR_STBD                                                               
                   CMPA    BASE_STBD                                                               
                   BPL     PARTIAL_RIGHT_TRN                                                         
                   BMI     EXIT 
