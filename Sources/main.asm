@@ -54,13 +54,17 @@ RIGHT_ALIGN   EQU   7
 
 ; Initial values based on the initial readings & variance
 ; -------------------------------------------------------
-BASE_LINE     FCB   $D0
+BASE_LINE     FCB   $9D
 BASE_BOW      FCB   $2A
 BASE_MID      FCB   $8A
-BASE_PORT     FCB   $62
-BASE_STBD     FCB   $9C
+BASE_PORT     FCB   $CC
+BASE_STBD     FCB   $CC
 
-LINE_VARIANCE           FCB   $10           ; Adding variance based on testing to
+LINE_VARIANCE           FCB   $18           ; Adding variance based on testing to 
+;BOW_VARIANCE            FCB   $30           ; Establish baseline for sensors
+PORT_VARIANCE           FCB   $20                     
+;MID_VARIANCE            FCB   $20
+STARBOARD_VARIANCE      FCB   $15
 
 TOP_LINE      RMB   20                      ; Top line of display
               FCB   NULL                    ; terminated by null
@@ -134,14 +138,14 @@ MAIN
 ;***************************************************************************************************
 msg1          dc.b  "Battery volt ",0
 msg2          dc.b  "State",0
-tab           dc.b  "START",0
-              dc.b  "FWD",0
-              dc.b  "stop!",0
-              dc.b  "TURNLEFT  ",0
-              dc.b  "TURNRITE  ",0
-              dc.b  "TURNREV ",0
-              dc.b  "LEFTALGN ",0     
-              dc.b  "RTIME",0  
+tab           dc.b  "start  ",0
+              dc.b  "fwd    ",0
+              dc.b  "all_stp",0
+              dc.b  "LeftTurn  ",0
+              dc.b  "RightTurn  ",0
+              dc.b  "RevTrn ",0
+              dc.b  "LeftTimed ",0     
+              dc.b  "RTimed ",0  
 
 ; subroutine section
 ;***************************************************************************************************
@@ -202,10 +206,10 @@ FWD_ST            BRSET   PORTAD0, $04, NO_FWD_BUMP           ; Checks if bow bu
                                                               ; REV_TURN state                             
                   JSR     UPDT_DISPL                          ; Update the display                                
                   JSR     INIT_REV                                                                
-                  LDY     #6000                                                                   
+                  LDY     #2000                                                                   
                   JSR     del_50us                                                                
                   JSR     INIT_LEFT                                                              
-                  LDY     #4000                                                                   
+                  LDY     #2000                                                                   
                   JSR     del_50us                                                                
                   LBRA    EXIT                                                                    
 
@@ -215,36 +219,38 @@ NO_FWD_BUMP       BRSET   PORTAD0, $04, NO_FWD_REAR_BUMP      ; Checks if the st
                   LBRA    EXIT 
                   
 NO_FWD_REAR_BUMP  LDAA    SENSOR_BOW                                                               
-                  CMPA    BASE_BOW                ; Sensor - base: >0 = black                                                
-                  BPL     NOT_ALIGNED             ; If BOW black, go straight                                                    
-                  ;LDAA    SENSOR_MID                                                                
-                  ;CMPA    BASE_MID                                                                
-                  ;BPL     NOT_ALIGNED                                                               
+                  CMPA    BASE_BOW                                                                
+                  BPL     NOT_ALIGNED                                                                
+                  LDAA    SENSOR_MID                                                                
+                  CMPA    BASE_MID                                                                
+                  BPL     NOT_ALIGNED                                                               
                   LDAA    SENSOR_LINE                                                
                   ADDA    LINE_VARIANCE                                                                
-                  CMPA    BASE_LINE               ; Sensor + var - base > 0 -> right black                                                
-                  BPL     CHECK_RIGHT_ALIGN       ; Turn right                                                   
+                  CMPA    BASE_LINE                                                               
+                  BPL     CHECK_RIGHT_ALIGN                                                          
                   LDAA    SENSOR_LINE                                                             
-                  SUBA    LINE_VARIANCE           ; Sensor - var - base > 0 -> left black                                                     
-                  CMPA    BASE_LINE               ; Turn left                                               
+                  SUBA    LINE_VARIANCE                                                                
+                  CMPA    BASE_LINE                                                              
                   BMI     CHECK_LEFT_ALIGN
 
 ;***************************************************************************************************                                                                  
 
-NOT_ALIGNED       LDAA    SENSOR_PORT                                                               
+NOT_ALIGNED       LDAA    SENSOR_PORT                                                            
+                  ADDA    PORT_VARIANCE                                                               
                   CMPA    BASE_PORT                                                              
-                  BPL     PARTIAL_LEFT_TRN     ; If Left is black, partial left                                                   
-                  BMI     NO_PORT              ; If Left white, go to NO PORT                                               
+                  BPL     PARTIAL_LEFT_TRN                                                        
+                  BMI     NO_PORT                                                             
 
 NO_PORT           LDAA    SENSOR_BOW                                                                 
                   CMPA    BASE_BOW                                                                
-                  BPL     EXIT                 ; If Fwd black, GO STRAIGHT                                                   
-                  BMI     NO_BOW               ; ELSE,                                                
+                  BPL     EXIT                                                                    
+                  BMI     NO_BOW                                                              
 
-NO_BOW            LDAA    SENSOR_STBD                                                               
+NO_BOW            LDAA    SENSOR_STBD                                                             
+                  ADDA    STARBOARD_VARIANCE                                                               
                   CMPA    BASE_STBD                                                               
-                  BPL     PARTIAL_RIGHT_TRN    ; If Right black, GO RIGHT                                                     
-                  BMI     EXIT                 ; GO STRAIGHT
+                  BPL     PARTIAL_RIGHT_TRN                                                         
+                  BMI     EXIT 
 
 ;***************************************************************************************************
 
