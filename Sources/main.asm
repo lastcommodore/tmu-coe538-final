@@ -55,16 +55,16 @@ RIGHT_ALIGN   EQU   7
 ; Initial values based on the initial readings & variance
 ; -------------------------------------------------------
 BASE_LINE     FCB   $9D
-BASE_BOW      FCB   $2A
+BASE_BOW      FCB   $CA
 BASE_MID      FCB   $CA
 BASE_PORT     FCB   $CC
 BASE_STBD     FCB   $CC
 
 LINE_VARIANCE           FCB   $18           ; Adding variance based on testing to 
-;BOW_VARIANCE            FCB   $30           ; Establish baseline for sensors
+BOW_VARIANCE            FCB   $30           ; Establish baseline for sensors
 PORT_VARIANCE           FCB   $20                     
 MID_VARIANCE            FCB   $20
-STARBOARD_VARIANCE      FCB   $15111
+STARBOARD_VARIANCE      FCB   $15
 
 TOP_LINE      RMB   20                      ; Top line of display
               FCB   NULL                    ; terminated by null
@@ -218,7 +218,8 @@ NO_FWD_BUMP       BRSET   PORTAD0, $04, NO_FWD_REAR_BUMP      ; Checks if the st
                   JSR     INIT_STOP                           ; ALL_STOP state
                   LBRA    EXIT 
                   
-NO_FWD_REAR_BUMP  LDAA    SENSOR_BOW                                                               
+NO_FWD_REAR_BUMP  LDAA    SENSOR_BOW                                                              
+                  ADDA    BOW_VARIANCE                                                               
                   CMPA    BASE_BOW                                                                
                   BPL     NOT_ALIGNED                                                                
                   LDAA    SENSOR_MID                                                              
@@ -242,7 +243,8 @@ NOT_ALIGNED       LDAA    SENSOR_PORT
                   BPL     PARTIAL_LEFT_TRN                                                        
                   BMI     NO_PORT                                                             
 
-NO_PORT           LDAA    SENSOR_BOW                                                                 
+NO_PORT           LDAA    SENSOR_BOW                                                             
+                  ADDA    BOW_VARIANCE                                                                 
                   CMPA    BASE_BOW                                                                
                   BPL     EXIT                                                                    
                   BMI     NO_BOW                                                              
@@ -285,16 +287,18 @@ EXIT              RTS
 
 ;***************************************************************************************************                                                                            
 
-LEFT              LDAA    SENSOR_BOW                                                                 
+LEFT              LDAA    SENSOR_BOW                                                              
+                  ADDA    BOW_VARIANCE                                                                 
                   CMPA    BASE_BOW                                                               
-                  BPL     LEFT_ALIGN_DONE       ; We're done turning (On black, positive)                                                   
-                  BMI     EXIT                  ; We need to keep turning (on white, negative)
+                  BPL     LEFT_ALIGN_DONE                                                        
+                  BMI     EXIT
 
 LEFT_ALIGN_DONE   MOVB    #FWD, CRNT_STATE                                                        
                   JSR     INIT_FWD                                                                
                   BRA     EXIT                                                                    
 
-RIGHT             LDAA    SENSOR_BOW                                                                
+RIGHT             LDAA    SENSOR_BOW                                                              
+                  ADDA    BOW_VARIANCE                                                                
                   CMPA    BASE_BOW                                                                
                   BPL     RIGHT_ALIGN_DONE                                                        
                   BMI     EXIT 
@@ -305,7 +309,8 @@ RIGHT_ALIGN_DONE  MOVB    #FWD, CRNT_STATE
 
 ;***************************************************************************************************
 
-REV_TRN_ST        LDAA    SENSOR_BOW                                                                 
+REV_TRN_ST        LDAA    SENSOR_BOW                                                              
+                  ADDA    BOW_VARIANCE                                                                 
                   CMPA    BASE_BOW                                                                
                   BMI     EXIT                                                                    
                   JSR     INIT_LEFT                                                               
