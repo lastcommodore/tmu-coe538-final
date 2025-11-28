@@ -11,7 +11,7 @@
 ; equates section
 ;***************************************************************************************************
 
-; Liquid Crystal Display Equates
+;   Liquid Crystal Display Equates
 ;-------------------------------
 CLEAR_HOME    EQU   $01                   ; Clear the display and home the cursor
 INTERFACE     EQU   $38                   ; 8 bit interface, two line display
@@ -34,8 +34,8 @@ SPACE         EQU   ' '                   ; The ?space? character
 
 ;Timers
 ;---------------
-T_LEFT        EQU   8
-T_RIGHT       EQU   8
+T_LEFT        EQU   1
+T_RIGHT       EQU   1
 
 ; States for robot
 ;-----------------
@@ -54,14 +54,14 @@ RIGHT_ALIGN   EQU   7
 
 ; Initial values based on the initial readings & variance
 ; -------------------------------------------------------
-BASE_LINE     FCB   $9D
-BASE_BOW      FCB   $CA
+BASE_LINE     FCB   $D0        ; all white reading
+BASE_BOW      FCB   $22        ; slightly above all white
 BASE_MID      FCB   $CA
 BASE_PORT     FCB   $CC
 BASE_STBD     FCB   $CC
 
-LINE_VARIANCE           FCB   $18           ; Adding variance based on testing to 
-BOW_VARIANCE            FCB   $30           ; Establish baseline for sensors
+LINE_VARIANCE           FCB   $10           ; Adding variance based on testing to 
+BOW_VARIANCE            FCB   $0           ; Establish baseline for sensors
 PORT_VARIANCE           FCB   $20                     
 MID_VARIANCE            FCB   $20
 STARBOARD_VARIANCE      FCB   $15
@@ -324,19 +324,21 @@ ALL_STOP_ST       BRSET   PORTAD0, %00000100, NO_START_BUMP
 NO_START_BUMP     RTS                                                                             
 
 ; Initialization Subroutines
-;***************************************************************************************************
+;***************************************************************************************************T
+
+
 INIT_RIGHT        BSET    PORTA,%00000010          
                   BCLR    PORTA,%00000001           
-                  LDAA    TOF_COUNTER               ; Mark the fwd_turn time Tfwdturn
-                  ADDA    #T_RIGHT
-                  STAA    T_TURN
+                  ;LDAA    TOF_COUNTER               ; Mark the fwd_turn time Tfwdturn
+                  ;ADDA    #T_RIGHT
+                  ;STAA    T_TURN
                   RTS
 
 INIT_LEFT         BSET    PORTA,%00000001         
                   BCLR    PORTA,%00000010          
-                  LDAA    TOF_COUNTER               ; Mark TOF time
-                  ADDA    #T_LEFT                   ; Add left turn
-                  STAA    T_TURN                    
+                  ;LDAA    TOF_COUNTER               ; Mark TOF time
+                  ;ADDA    #T_LEFT                   ; Add left turn
+                  ;STAA    T_TURN                    
                   RTS
 
 INIT_FWD          BCLR    PORTA, %00000011          ; Set FWD dir. for both motors
@@ -435,7 +437,7 @@ READ_SENSORS      CLR   SENSOR_NUM     ; Select sensor number 0
 
 RS_MAIN_LOOP      LDAA  SENSOR_NUM     ; Select the correct sensor input
                   JSR   SELECT_SENSOR  ; on the hardware
-                  LDY   #400           ; 20 ms delay to allow the
+                  LDY   #200           ; 20 ms delay to allow the
                   JSR   del_50us       ; sensor to stabilize
                   LDAA  #%10000001     ; Start A/D conversion on AN1
                   STAA  ATDCTL5
